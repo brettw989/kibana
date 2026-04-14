@@ -1,0 +1,155 @@
+# .github/workflows/kibana-sync.yml
+# Syncs fork from elastic/kibana, rebuilds .agents/skills/INDEX.md and manifest.txt.
+# Repo: brettw989/kibana
+
+name: Sync Fork & Rebuild Indexes
+
+on:
+  schedule:
+    - cron: '0 6 * * *'  # Daily at 6 AM UTC
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  sync-and-rebuild:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Sync fork from upstream
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          echo "::group::Syncing fork from elastic/kibana"
+          gh repo sync "${{ github.repository }}" --source elastic/kibana --force || {
+            echo "::warning::gh repo sync failed — upstream may be unavailable or fork is up to date"
+          }
+          echo "::endgroup::"
+
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 1
+
+      - name: Rebuild .agents/skills/INDEX.md
+        run: |
+          set -euo pipefail
+
+          SKILLS_ROOT=".agents/skills"
+          INDEX_FILE="${SKILLS_ROOT}/INDEX.md"
+
+          if [ ! -d "$SKILLS_ROOT" ]; then
+            echo "::warning::${SKILLS_ROOT} directory not found — skipping index rebuild"
+            exit 0
+          fi
+
+          TEMP_INDEX=$(mktemp)
+
+          # ── Helper: extract description from YAML frontmatter ──
+          extract_description() {
+            local file="$1"
+            awk '
+              /^---$/ { count++; next }
+              count == 1 && /^description:/ {
+                sub(/^description:[ ]*/, "")
+                if ($0 ~ /^>-?[[:space:]]*$/ || $0 ~ /^\|-?[[:space:]]*$/) {
+                  val = ""
+                  while ((getline line) > 0) {
+                    if (line !~ /^[[:space:]]/) break
+                    gsub(/^[[:space:]]+/, "", line)
+                    if (val != "") val = val " "
+                    val = val line
+                  }
+                  print val
+                  exit
+                }
+                gsub(/^["'"'"']|["'"'"']$/, "")
+                print
+                exit
+              }
+              count >= 2 { exit }
+            ' "$file"
+          }
+
+          # ── Write header ──
+          {
+            echo "# Kibana Agent Skills Index"
+            echo "Generated from repository contents under \`.agents/skills/\`."
+            echo ""
+          } > "$TEMP_INDEX"
+
+          FLAT_LIST=""
+
+          # ── Find all SKILL.md files ──
+          SKILL_COUNT=0
+          while IFS= read -r skill_file; do
+            skill_dir=$(dirname "$skill_file")
+            rel_dir="${skill_dir#./}"
+            section="${rel_dir#.agents/skills/}"
+
+            desc=$(extract_description "$skill_file")
+
+            files=()
+            while IFS= read -r md_file; do
+              md_rel="${md_file#./}"
+              files+=("$md_rel")
+              FLAT_LIST="${FLAT_LIST}${md_rel}"$'\n'
+            done < <(find "$skill_dir" -type f -name "*.md" ! -name "INDEX.md" | sort)
+
+            {
+              echo "## ${section}"
+              echo "Description: ${desc}"
+              echo "Files:"
+              for f in "${files[@]}"; do
+                echo "- ${f}"
+              done
+              echo ""
+            } >> "$TEMP_INDEX"
+
+            SKILL_COUNT=$((SKILL_COUNT + 1))
+          done < <(find "$SKILLS_ROOT" -mindepth 2 -name "SKILL.md" -type f | sort)
+
+          # ── Append flat file list ──
+          {
+            echo "## Flat File List"
+            echo "$FLAT_LIST" | sort | while IFS= read -r line; do
+              [ -n "$line" ] && echo "- ${line}"
+            done
+          } >> "$TEMP_INDEX"
+
+          mv "$TEMP_INDEX" "$INDEX_FILE"
+          echo "Rebuilt $INDEX_FILE ($SKILL_COUNT skills)"
+
+      - name: Rebuild .agents/skills/manifest.txt
+        run: |
+          set -euo pipefail
+
+          SKILLS_ROOT=".agents/skills"
+          MANIFEST="${SKILLS_ROOT}/manifest.txt"
+
+          if [ ! -d "$SKILLS_ROOT" ]; then
+            echo "::warning::${SKILLS_ROOT} directory not found — skipping manifest rebuild"
+            exit 0
+          fi
+
+          find "$SKILLS_ROOT" -name "*.md" ! -name "INDEX.md" -type f | sort > "$MANIFEST"
+          echo "Rebuilt $MANIFEST ($(wc -l < "$MANIFEST") entries)"
+
+      - name: Commit and push if changed
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          git add .agents/skills/INDEX.md .agents/skills/manifest.txt
+
+          if git diff --cached --quiet; then
+            echo "No changes to commit"
+            exit 0
+          fi
+
+          git commit -m "chore: daily sync and index rebuild [automated] [skip ci]"
+          git push
+          echo "Changes committed and pushed"
