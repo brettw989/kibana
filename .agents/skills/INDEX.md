@@ -1,5 +1,5 @@
-# Skills Index
-Generated from repository contents under `.agents/skills`.
+# Kibana Agent Skills Index
+Generated from repository contents under `.agents/skills/`.
 
 ## api-authz
 Description: Kibana API route authorization patterns. Use when configuring route security, working with requiredPrivileges, using authzResult for privilege-based branching, opting out of authorization, or naming custom privileges.
@@ -22,7 +22,7 @@ Files:
 - .agents/skills/codeql/SKILL.md
 
 ## cypress-to-scout-migration
-Description: Migrate Kibana Cypress E2E tests (.cy.ts) to Scout (Playwright). Applies to any Kibana plugin or solution. Includes triage gates (duplicate detection, layer analysis, value assessment), Cypress-to-Scout pattern mapping, data cleanup audit, and PR workflow.
+Description: Migrate Kibana Cypress E2E tests (.cy.ts) to Scout (Playwright). Applies to any Kibana plugin or solution. Includes triage gates (duplicate detection, layer analysis, value assessment), Cypress-to-Scout pattern mapping, data cleanup audit, and PR workflow. Use when: (1) migrating a Cypress test to Scout, (2) converting .cy.ts to .spec.ts, (3) planning a Cypress-to-Scout migration batch, (4) rewriting Cypress screens/tasks as Scout page objects, (5) asked "how do I move this Cypress test to Scout/Playwright", (6) asked about differences between Cypress and Scout.
 Files:
 - .agents/skills/cypress-to-scout-migration/SKILL.md
 - .agents/skills/cypress-to-scout-migration/references/cypress-vs-scout-differences.md
@@ -88,7 +88,7 @@ Files:
 - .agents/skills/kibana-privilege-deprecation/references/reference.md
 
 ## optimize-bundle-size
-Description: Reduce plugin page load bundle size and avoid unnecessary increases in packages/kbn-optimizer/limits.yml. Use when proactively optimizing bundles, investigating CI page-load overages, or reviewing PRs that change bundle limits.
+Description: Reduce plugin `page load bundle size` and avoid unnecessary increases in `packages/kbn-optimizer/limits.yml`. Use when proactively optimizing bundles, investigating CI page-load overages, or reviewing PRs that change bundle limits.
 Files:
 - .agents/skills/optimize-bundle-size/SKILL.md
 
@@ -105,7 +105,7 @@ Files:
 - .agents/skills/scout-best-practices-reviewer/SKILL.md
 
 ## scout-create-scaffold
-Description: Generate or repair a Scout test scaffold for a Kibana plugin/package (test/scout*/{api,ui} Playwright configs, fixtures, example specs). Use when you need the initial Scout directory structure; prefer node scripts/scout.js generate with flags for non-interactive/LLM execution.
+Description: Generate or repair a Scout test scaffold for a Kibana plugin/package (test/scout*/{api,ui} Playwright configs, fixtures, example specs). Use when you need the initial Scout directory structure; prefer `node scripts/scout.js generate` with flags for non-interactive/LLM execution.
 Files:
 - .agents/skills/scout-create-scaffold/SKILL.md
 
@@ -128,7 +128,7 @@ Files:
 - .agents/skills/scout-ui-testing/references/scout-ui-parallelism.md
 
 ## validate-oas
-Description: Use when you need a quick VALID or NOT VALID result for a scoped Kibana OAS area, and first ensure the generated oas_docs inputs are up to date so validation runs against the current environment rather than stale snapshots.
+Description: Use when you need a quick VALID or NOT VALID result for a scoped Kibana OAS area, and first ensure the generated `oas_docs` inputs are up to date so validation runs against the current environment rather than stale snapshots.
 Files:
 - .agents/skills/validate-oas/SKILL.md
 
