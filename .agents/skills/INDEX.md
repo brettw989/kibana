@@ -102,6 +102,7 @@ Files:
 ## scout-best-practices-reviewer
 Description: Review Scout UI/API tests (including Scout test migrations) for best practices, reuse, and parity.
 Files:
+- .agents/skills/scout-best-practices-reviewer/OUTPUT.md
 - .agents/skills/scout-best-practices-reviewer/SKILL.md
 
 ## scout-create-scaffold
@@ -159,6 +160,7 @@ Files:
 - .agents/skills/scout-api-testing/SKILL.md
 - .agents/skills/scout-api-testing/references/scout-api-auth.md
 - .agents/skills/scout-api-testing/references/scout-api-services.md
+- .agents/skills/scout-best-practices-reviewer/OUTPUT.md
 - .agents/skills/scout-best-practices-reviewer/SKILL.md
 - .agents/skills/scout-create-scaffold/SKILL.md
 - .agents/skills/scout-migrate-from-ftr/SKILL.md
